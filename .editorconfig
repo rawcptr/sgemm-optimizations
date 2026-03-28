@@ -1,0 +1,22 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[flake.nix]
+indent_style = space
+indent_size = 2
+
+[*.{cc,cpp,h,hpp}]
+indent_size = 2
+indent_style = tab
+
+[.clangd]
+indent_size = 2
+indent_style = tab
+
+
+[.clang-format]
+indent_size = 2
+indent_style = tab

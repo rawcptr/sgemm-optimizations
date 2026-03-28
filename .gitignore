@@ -1,0 +1,21 @@
+*
+
+!.gitignore
+
+# source files
+!src/
+!src/**/
+!src/**/*.{cu,cc}
+
+# headers
+!include/
+!include/**/
+!include/**/*.{hpp,cuh}
+
+!CMakeLists.txt
+!.clangd
+!.clang-format
+
+!.editorconfig
+!README.md
+!LICENSE

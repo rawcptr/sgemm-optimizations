@@ -1,0 +1,10 @@
+CompileFlags:
+  Add:
+    - "-D__NVCC__=1"
+    - "-I/usr/local/cuda/include"
+    - "-xcuda"
+    - "-I/home/nths/d/sgemm/include"
+    - -std=c++20
+  Remove:
+    - "-forward-unknown-to-host-compiler"
+    - "--generate-code=*"
