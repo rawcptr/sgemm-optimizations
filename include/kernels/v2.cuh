@@ -39,13 +39,13 @@ __global__ void sgemm_v2(
   }
 }
 
-template<int TILE>
+template<int TILE = 32>
 struct v2_kernel {
   dim3 grid, block;
-  int M, N, K;
+  std::size_t M, N, K;
 
   cu::array<f32> operator()(const float* A, const float* B) const {
-    cu::array<f32> C(static_cast<std::size_t>(M) * N);
+    cu::array<f32> C(M * N);
     sgemm_v2<TILE><<<grid, block>>>(A, B, C.data(), M, N, K);
     cu::check_last_cuda("v2 launch");
     return C;

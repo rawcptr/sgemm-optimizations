@@ -15,6 +15,9 @@ __global__ void sgemm_v3(
   float alpha = 1.0f,
   float beta = 0.0f
 ) {
+  //
+  static_assert(TILE % TM == 0);
+  static_assert(TILE % TN == 0);
   // set up the shared memroy
   // SMEM is shared per block.
   // the TILE is literally sizeof(block)
@@ -26,15 +29,15 @@ __global__ void sgemm_v3(
   // so they are the index into the THREADBLOCK (which threadblock am i?)
   auto tx = threadIdx.x; // threadblock's topleft col index
   auto ty = threadIdx.y; // threadblock's topleft row index
-  auto block_row = blockIdx.y * TILE; // which TILE row is this (blockDim.y)
-  auto block_col = blockIdx.x * TILE; // which TILE col is this (blockDim.x)
+  auto block_row = blockIdx.y * TILE; // which TILE->row is this (blockDim.y)
+  auto block_col = blockIdx.x * TILE; // which TILE->col is this (blockDim.x)
   // we have tiles and such
   // we want to iterate over tiles for accumulating the dot
   // product into the SMEM
   for (std::size_t tile{}; tile < K; tile += TILE) {
     // load data into SMEM here, each thread loads it's own data into SMEM
-    for (std::size_t r{ty}; r < TILE; r += TILE) {
-      for (std::size_t c{tx}; c < TILE; c += TILE) {
+    for (std::size_t r{ty}; r < TILE; r += blockDim.y) {
+      for (std::size_t c{tx}; c < TILE; c += blockDim.x) {
         auto a_row = block_row + r, a_col = tile + c;
         auto b_row = tile + r, b_col = block_col + c;
         As[r][c] = (a_row < M && a_col < K) ? A[a_row * K + a_col] : 0.0f;
