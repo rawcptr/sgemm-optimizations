@@ -42,17 +42,23 @@ class array {
  public:
   explicit array(std::size_t n, cudaStream_t stream = 0) : _size{n}, _stream{stream} {
     T* ptr = nullptr;
-    check_cuda(cudaMallocAsync(reinterpret_cast<void**>(&ptr), n * sizeof(T), _stream), "array alloc");
+    check_cuda(
+      cudaMallocAsync(reinterpret_cast<void**>(&ptr), n * sizeof(T), _stream), "array alloc"
+    );
     _data = {ptr, detail::cuda_deleter<T>{_stream}};
   }
 
   static array zeros(std::size_t n, cudaStream_t stream = 0) {
     array result(n, stream);
-    check_cuda(cudaMemsetAsync(result.data(), 0, result.size_bytes(), result._stream), "array memset");
+    check_cuda(
+      cudaMemsetAsync(result.data(), 0, result.size_bytes(), result._stream), "array memset"
+    );
     return result;
   }
 
-  static array uniform(std::size_t n, float min = -1.0f, float max = 1.0f, cudaStream_t stream = 0) {
+  static array uniform(
+    std::size_t n, float min = -1.0f, float max = 1.0f, cudaStream_t stream = 0
+  ) {
     std::vector<T> host(n);
     for (auto& x : host) {
       if constexpr (std::is_same_v<T, f16>) {
@@ -67,7 +73,9 @@ class array {
   static array device(const std::vector<T>& vec, cudaStream_t stream = 0) {
     array result(vec.size(), stream);
     check_cuda(
-      cudaMemcpyAsync(result.data(), vec.data(), result.size_bytes(), cudaMemcpyHostToDevice, result._stream),
+      cudaMemcpyAsync(
+        result.data(), vec.data(), result.size_bytes(), cudaMemcpyHostToDevice, result._stream
+      ),
       "array H2D copy"
     );
     return result;

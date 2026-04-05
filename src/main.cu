@@ -3,9 +3,13 @@
 
 #include "cu/array.cuh"
 #include "cu/runner.cuh"
+#include "kernels/v1.cuh"
 #include "kernels/v2.cuh"
 #include "kernels/v3.cuh"
+#include "kernels/v4.cuh"
 #include "utils.hpp"
+
+// #define DEBUG_ASSERTIONS
 
 void run_sgemm(cublasHandle_t handle, std::size_t M, std::size_t N, std::size_t K) {
   auto a = cu::array<f32>::uniform(M * K);
@@ -26,24 +30,22 @@ void run_sgemm(cublasHandle_t handle, std::size_t M, std::size_t N, std::size_t 
   );
   // clang-format on
   cudaDeviceSynchronize();
-
-  constexpr int TILE = 64;
-  constexpr int TM = 4;
-  constexpr int TN = 4;
-
-  dim3 grid(cdiv(N, TILE), cdiv(M, TILE));
-  // v1_kernel v1{grid, block, int(M), int(N), int(K)};
-  // v2_kernel<TILE> v2{grid, dim3{TILE, TILE}, int(M), int(N), int(K)};
-  v3_kernel<TILE, TM, TN> v3{grid, dim3{TILE / TN, TILE / TM}, M, N, K};
-
+  v1_kernel v1(dim3{cdiv(N, 32), cdiv(M, 32)}, dim3{32, 32}, M, N, K);
+  v2_kernel<16> v2{dim3{cdiv(N, 16), cdiv(M, 16)}, dim3{16, 16}, M, N, K};
+  v3_kernel<64, 4, 4> v3{dim3{cdiv(N, 64), cdiv(M, 64)}, dim3{64 / 4, 64 / 4}, M, N, K};
+  v4_kernel<64, 4, 4> v4{dim3{cdiv(N, 64), cdiv(M, 64)}, dim3{64 / 4, 64 / 4}, M, N, K};
+#ifdef DEBUG_ASSERTIONS
+  auto cv1 = v1(a.data(), b.data());
+  check_ref("v2", cv1.cpu().data(), c_ref.cpu().data(), M, N);
+  auto cv2 = v2(a.data(), b.data());
+  check_ref("v2", cv2.cpu().data(), c_ref.cpu().data(), M, N);
   auto cv3 = v3(a.data(), b.data());
-  // auto cv2 = v2(a.data(), b.data());
-  check_ref(cv3.cpu().data(), c_ref.cpu().data(), M, N);
-  // check_ref(cv2.cpu().data(), c_ref.cpu().data(), M, N);
-  // sgemm_bench("[v2]", [&] { v2(a.data(), b.data()); }, M, N, K);
-  sgemm_bench("[v3]", [&] { v3(a.data(), b.data()); }, M, N, K);
+  check_ref("v3", cv3.cpu().data(), c_ref.cpu().data(), M, N);
+  auto cv4 = v4(a.data(), b.data());
+  check_ref("v4", cv4.cpu().data(), c_ref.cpu().data(), M, N);
+#endif // !DEBUG_ASSERTIONS
   // clang-format off
-  sgemm_bench("[cublas]", [&]{
+  sgemm_bench("cublas", [&]{
     cublasSgemm(
       handle, CUBLAS_OP_N, CUBLAS_OP_N,
       N, M, K,
@@ -52,6 +54,10 @@ void run_sgemm(cublasHandle_t handle, std::size_t M, std::size_t N, std::size_t 
     M, N, K
   );
   // clang-format on
+  sgemm_bench("v1", [&] { v1(a.data(), b.data()); }, M, N, K);
+  sgemm_bench("v2", [&] { v2(a.data(), b.data()); }, M, N, K);
+  sgemm_bench("v3", [&] { v3(a.data(), b.data()); }, M, N, K);
+  sgemm_bench("v4", [&] { v4(a.data(), b.data()); }, M, N, K);
 }
 
 int main() {
