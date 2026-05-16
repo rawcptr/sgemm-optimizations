@@ -4,6 +4,8 @@
 #include "cu/array.cuh"
 #include "cu/check.cuh"
 
+namespace v3 {
+
 template<std::size_t TILE, std::size_t TM, std::size_t TN>
 __global__ void sgemm_v3(
   const float* const A,
@@ -85,7 +87,7 @@ __global__ void sgemm_v3(
 }
 
 template<const std::size_t TILE = 64, const std::size_t TM = 8, const std::size_t TN = 8>
-struct v3_kernel {
+struct kernel {
   dim3 grid, block;
   std::size_t M, N, K;
 
@@ -96,3 +98,4 @@ struct v3_kernel {
     return C;
   }
 };
+} // namespace v3

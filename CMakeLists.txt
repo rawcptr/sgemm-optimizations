@@ -25,7 +25,10 @@ FetchContent_MakeAvailable(fmt)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 find_package(CUDAToolkit REQUIRED)
-target_compile_options(${PROJECT_NAME} PRIVATE -O2)
+target_compile_options(${PROJECT_NAME} PRIVATE 
+  $<$<CXX_COMPILER_ID:MSVC>:/O2>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-O2>
+)
 target_link_libraries(${PROJECT_NAME} PRIVATE CUDA::cublas CUDA::cudart fmt::fmt)
 
 # file(CREATE_LINK

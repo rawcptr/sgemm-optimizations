@@ -18,3 +18,4 @@
 !.editorconfig
 !README.md
 !LICENSE
+build/_deps/fmt-subbuild/CMakeLists.txt

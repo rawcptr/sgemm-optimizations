@@ -8,3 +8,5 @@ CompileFlags:
   Remove:
     - "-forward-unknown-to-host-compiler"
     - "--generate-code=*"
+    - "--ptxas-options=-v"
+

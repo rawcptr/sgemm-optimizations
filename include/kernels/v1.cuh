@@ -4,6 +4,8 @@
 #include "cu/array.cuh"
 #include "cu/check.cuh"
 
+namespace v1 {
+
 __global__ void sgemm_v1(
   const float* const A,
   const float* const B,
@@ -25,7 +27,7 @@ __global__ void sgemm_v1(
   }
 }
 
-struct v1_kernel {
+struct kernel {
   dim3 grid, block;
   std::size_t M, N, K;
 
@@ -36,3 +38,4 @@ struct v1_kernel {
     return C;
   }
 };
+} // namespace v1

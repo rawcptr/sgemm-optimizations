@@ -10,18 +10,18 @@
 #include "cu/timer.cuh"
 
 // Correctness check: compare kernel output against a reference on the host.
-void check_ref(const float* mine, const float* ref, std::size_t M, std::size_t N);
+void check_ref(const char* name, const float* mine, const float* ref, std::size_t M, std::size_t N);
 
 // Benchmark: warmup + timed iterations, prints GFLOP/s and GB/s.
 template<typename F>
 void sgemm_bench(
-  const char* name,
+  const char* const name,
   F&& kernel_fn,
   std::size_t M,
   std::size_t N,
   std::size_t K,
-  int iters = 20,
-  int warmup = 5
+  int iters = 5,
+  int warmup = 3
 ) {
   for (int i = 0; i < warmup; ++i) kernel_fn();
   cudaDeviceSynchronize();
@@ -39,14 +39,17 @@ void sgemm_bench(
 
   double mean_s = mean_ms * 1e-3;
   long long flops = 2LL * static_cast<long long>(M) * N * K;
-  long long bytes = static_cast<long long>(sizeof(float)) * (M * K + K * N + M * N);
 
-  fmt::println(
-    "{} mean {:.3f} ms | min {:.3f} ms | {:.1f} GFLOP/s | {:.1f} GB/s",
+  fmt::print(
+    "{{"
+    "\"kernel\":\"{}\","
+    "\"mean (ms)\":{:.3f},"
+    "\"min (ms)\":{:.3f},"
+    "\"GFLOP/s\":{:.1f}"
+    "}}\n",
     name,
     mean_ms,
     min_ms,
-    flops / mean_s / 1e9,
-    bytes / mean_s / 1e9
+    flops / mean_s / 1e9
   );
 }
