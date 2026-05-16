@@ -40,18 +40,18 @@ void run_sgemm(cublasHandle_t handle, std::size_t M, std::size_t N, std::size_t 
   v5::kernel<64, 8, 64, 4, 4> v5{dim3{cdiv(N, 64), cdiv(M, 64)}, dim3{256}, M, N, K};
 
 #ifdef DEBUG_ASSERTIONS
-cublas_sgemm(c_ref);
-cudaDeviceSynchronize();
-auto cv1 = v1(a.data(), b.data());
-check_ref("cv1", cv1.cpu().data(), c_ref.cpu().data(), M, N);
-auto cv2 = v2(a.data(), b.data());
-check_ref("cv2", cv2.cpu().data(), c_ref.cpu().data(), M, N);
-auto cv3 = v3(a.data(), b.data());
-check_ref("cv3", cv3.cpu().data(), c_ref.cpu().data(), M, N);
-auto cv4 = v4(a.data(), b.data());
-check_ref("cv4", cv4.cpu().data(), c_ref.cpu().data(), M, N);
-auto cv5 = v5(a.data(), b.data());
-check_ref("cv5", cv5.cpu().data(), c_ref.cpu().data(), M, N);
+  cublas_sgemm(c_ref);
+  cudaDeviceSynchronize();
+  auto cv1 = v1(a.data(), b.data());
+  check_ref("cv1", cv1.cpu().data(), c_ref.cpu().data(), M, N);
+  auto cv2 = v2(a.data(), b.data());
+  check_ref("cv2", cv2.cpu().data(), c_ref.cpu().data(), M, N);
+  auto cv3 = v3(a.data(), b.data());
+  check_ref("cv3", cv3.cpu().data(), c_ref.cpu().data(), M, N);
+  auto cv4 = v4(a.data(), b.data());
+  check_ref("cv4", cv4.cpu().data(), c_ref.cpu().data(), M, N);
+  auto cv5 = v5(a.data(), b.data());
+  check_ref("cv5", cv5.cpu().data(), c_ref.cpu().data(), M, N);
 #endif // !DEBUG_ASSERTIONS
 
 #ifdef BENCHMARKING
